@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+
+const main = require('../dist/mbox').main;
+(async function() {
+  await main();
+}()).then().catch();

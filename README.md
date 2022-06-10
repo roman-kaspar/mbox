@@ -9,22 +9,22 @@ The project I used for tracking my bank account ([smoneybox.com](https://smoneyb
 
 ### Tech
 
-The plan is to create a command-line tool that works with local SQL database, and simple command-line query client that will handle the above requirements. I want to use TypeScript, SQLite3, and some SQL query builder.
+The plan is to create a command-line tool that works with local SQL database, and simple command-line query client that will handle the above requirements. I want to use TypeScript and SQLite3.
 
 ### Data formats
 
 The import / export **CSV files** are of the following format:
 * Date: _string_, date in "YYYY-MM-DD" format, e.g. "2022-05-01"
 * Category: _string_
-* Name: _string_, 
-* Description: _string_
 * Amount: _string_, in fixed two decimal digits format, e.g. "5679.73"
+
+Exported files contain only listed columns, imported files must contain at least the above columns, all other column are ignored.
 
 The **DB schema** is tracked in `migrations` directory, the schema contains the following tables:
 * categories: (id, name)
-* transactions: (id, category_id, date, name, description, amount)
+* transactions: (id, category_id, date, amount)
 
-All _ids_ are generated + autoincremented, the _dates_ are of DATE type, the _amounts_ are of BIGINT type (think big :-)), all other fields are of VARCHAR(200) type.
+All _ids_ are generated + autoincremented, the _name_ and _date_ are of TEXT type, and _amounts_ are of INTEGER type.
 
 ### Building
 
@@ -36,23 +36,22 @@ $ yarn build
 
 Compiled scripts are in `dist` directory, you need node version 16 or newer to run the code, to start it run
 ```
-$ yarn start
+$ ./bin/mbox
 ```
-
 with the arguments needed (see below).
 
-### Supported commands and their arguments
+### Supported commands
 
 The following commands are supported:
-* init_db
-* connect
 * help
+* init_db
 * import
 * export
 * balance
 * list
+* connect
 
-For details, use `--help` option. When using `connect` command, the tool switches into interactive REPL mode, in which you can use other commands. It waits for the `quit` command or `crtl-d` which exits the REPL mode and disconnects the DB.
+For details, use `help` command. When using `connect` command, the tool switches into interactive REPL mode, in which you can use other commands. It waits for the `quit` command or `crtl-d` which exits the REPL mode and disconnects the DB.
 
 ### Copyright
 
