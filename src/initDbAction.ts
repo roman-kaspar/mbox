@@ -13,6 +13,5 @@ export class InitDbAction extends Action {
     const {database: filename} = options;
     const db = new Db(filename, this.logger);
     await db.create();
-    this.logger.finish();
   }
 }

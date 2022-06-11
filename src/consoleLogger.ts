@@ -1,7 +1,7 @@
 import printf from 'printf';
 import {Logger} from './logger';
 
-type StrTransform = (string) => string;
+type StrTransform = (param: string | number) => string;
 
 export const red: StrTransform = (text) => `\x1b[31m${text}\x1b[0m`;
 const redError = red('error:');

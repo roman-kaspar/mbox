@@ -46,12 +46,11 @@ The following commands are supported:
 * help
 * init_db
 * import
-* export
 * balance
 * list
-* connect
+* export
 
-For details, use `help` command. When using `connect` command, the tool switches into interactive REPL mode, in which you can use other commands. It waits for the `quit` command or `crtl-d` which exits the REPL mode and disconnects the DB.
+For details, use `help` command.
 
 ### Copyright
 

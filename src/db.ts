@@ -3,12 +3,17 @@ import {access, readdir, readFile} from 'fs/promises';
 import {constants} from 'fs';
 import {resolve} from 'path';
 
+import {yellow} from './consoleLogger';
+import {CsvRecord} from './csvFile';
 import {Logger} from './logger';
 import {Msg} from './messages';
 import {Sql} from './sql';
 
-const registerExitHandlers = (db: Database) => {
-  process.on('exit', () => db.close());
+const registerExitHandlers = (db: Database, logger: Logger) => {
+  process.on('exit', () => {
+    logger.info('DB disconnected\n');
+    db.close();
+  });
   process.on('SIGHUP', () => process.exit(128 + 1));
   process.on('SIGINT', () => process.exit(128 + 2));
   process.on('SIGTERM', () => process.exit(128 + 15));
@@ -38,9 +43,9 @@ export class Db {
       // pass
     }
     try {
-      this.db = new Database(this.filename);
+      this.db = new Database(this.filename, this.logger);
       this.db.pragma('foreign_keys = ON');
-      registerExitHandlers(this.db);
+      registerExitHandlers(this.db, this.logger);
     } catch {
       this.logger.error(Msg.DB_CANNOT_CREATE, this.filename);
     }
@@ -103,6 +108,63 @@ export class Db {
       runMigrations(filenames.map((f, idx) => ({filename: f, migration: migrations[idx]})));
     } catch {
       this.logger.error(Msg.MIGRATION_FAIL);
+    }
+  }
+
+  public async connect(): Promise<void> {
+    if (this.db) {
+      this.logger.error(Msg.DB_ALREADY_CONNECTED);
+    }
+    try {
+      this.db = new Database(this.filename, {fileMustExist: true});
+      this.db.pragma('foreign_keys = ON');
+      registerExitHandlers(this.db, this.logger);
+    } catch {
+      this.logger.error(Msg.DB_CANNOT_CONNECT, this.filename);
+    }
+    this.logger.info(Msg.DB_CONNECTED, this.filename);
+    // run migrations
+    await this.migrate();
+  }
+
+  public async import(transactions: CsvRecord[]): Promise<void> {
+    if (!this.db) {
+      this.logger.error(Msg.DB_NOT_CONNECTED);
+    }
+    let dbCategories: Record<string, number>;
+    try {
+      const statement = this.db.prepare(Sql.SELECT_CATEGORIES);
+      dbCategories = statement.all().reduce((acc, {id, name}) => {
+        acc[name] = id;
+        return acc;
+      }, {});
+    } catch {
+      this.logger.error(Msg.DB_SELECT_FAIL, 'categories');
+    }
+    const addCategory = this.db.prepare(Sql.INSERT_CATEGORY);
+    const addTransaction = this.db.prepare(Sql.INSERT_TRANSACTION);
+    const importTransactions = this.db.transaction((trans) => {
+      let newCategories = 0;
+      const categSet = new Set<string>();
+      trans.forEach(({category, amount, date}, idx) => {
+        categSet.add(category);
+        if (!(category in dbCategories)) {
+          const res = addCategory.get(category);
+          dbCategories[category] = res.id;
+          newCategories += 1;
+        }
+        const catId = dbCategories[category];
+        addTransaction.run(catId, date, amount);
+        if ((((idx + 1) % 10) === 0) && (idx + 1 !== trans.length)) {
+          this.logger.info(Msg.DB_TRANSACTIONS_INSERTED, yellow(idx + 1), yellow(categSet.size), yellow(newCategories), '...');
+        }
+      });
+      this.logger.info(Msg.DB_TRANSACTIONS_INSERTED, yellow(trans.length), yellow(categSet.size), yellow(newCategories), '');
+    });
+    try {
+      importTransactions(transactions);
+    } catch {
+      this.logger.error(Msg.CSV_IMPORT_FAIL);
     }
   }
 };
