@@ -1,18 +1,10 @@
 import printf from 'printf';
 import {Logger} from './logger';
+import {green, magenta, red, yellow} from './text';
 
-type StrTransform = (param: string | number) => string;
-
-export const red: StrTransform = (text) => `\x1b[31m${text}\x1b[0m`;
 const redError = red('error:');
-
-export const yellow: StrTransform = (text) => `\x1b[33m${text}\x1b[0m`;
 const yellowWarning = yellow('warning:');
-
-export const green: StrTransform = (text) => `\x1b[32m${text}\x1b[0m`;
 const greenInfo = green('info:');
-
-export const magenta: StrTransform = (text) => `\x1b[35m${text}\x1b[0m`;
 const magentaDebug = magenta('debug:');
 
 export class ConsoleLogger extends Logger {

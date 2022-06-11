@@ -19,7 +19,7 @@ export class ImportAction extends Action {
     await db.connect();
     const csvFile = new CsvFile(csvFilename, this.logger);
     const transactions: CsvRecord[] = await csvFile.parseFile();
-    await db.import(transactions);
+    db.import(transactions);
   }
 
 }

@@ -19,4 +19,6 @@ export const Msg: Record<string, string> = {
   CSV_CANNOT_READ: 'cannot read CSV file "%s"',
   CSV_INVALID_RECORD: 'invalid record in CSV file "%s" on line %d',
   CSV_IMPORT_FAIL: 'import of transactions failed',
+
+  CATEGORY_NOT_FOUND: 'category "%s" not present in DB',
 };

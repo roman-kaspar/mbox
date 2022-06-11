@@ -3,11 +3,12 @@ import {access, readdir, readFile} from 'fs/promises';
 import {constants} from 'fs';
 import {resolve} from 'path';
 
-import {yellow} from './consoleLogger';
+import {yellow} from './text';
 import {CsvRecord} from './csvFile';
 import {Logger} from './logger';
 import {Msg} from './messages';
 import {Sql} from './sql';
+import {DbCategory, DbTransaction} from './types';
 
 const registerExitHandlers = (db: Database, logger: Logger) => {
   process.on('exit', () => {
@@ -127,20 +128,34 @@ export class Db {
     await this.migrate();
   }
 
-  public async import(transactions: CsvRecord[]): Promise<void> {
-    if (!this.db) {
-      this.logger.error(Msg.DB_NOT_CONNECTED);
-    }
-    let dbCategories: Record<string, number>;
+  private getCategories(): DbCategory[] {
     try {
       const statement = this.db.prepare(Sql.SELECT_CATEGORIES);
-      dbCategories = statement.all().reduce((acc, {id, name}) => {
-        acc[name] = id;
-        return acc;
-      }, {});
+      return statement.all();
     } catch {
       this.logger.error(Msg.DB_SELECT_FAIL, 'categories');
     }
+  }
+
+  private getCategoriesByName(): Record<string, number> {
+    return this.getCategories().reduce((acc, {id, name}) => {
+      acc[name] = id;
+      return acc;
+    }, {});
+  }
+
+  private getCategoriesById(): Record<number, string> {
+    return this.getCategories().reduce((acc, {id, name}) => {
+      acc[id] = name;
+      return acc;
+    }, {});
+  }
+
+  public import(transactions: CsvRecord[]): void {
+    if (!this.db) {
+      this.logger.error(Msg.DB_NOT_CONNECTED);
+    }
+    const dbCategories = this.getCategoriesByName();
     const addCategory = this.db.prepare(Sql.INSERT_CATEGORY);
     const addTransaction = this.db.prepare(Sql.INSERT_TRANSACTION);
     const importTransactions = this.db.transaction((trans) => {
@@ -167,4 +182,50 @@ export class Db {
       this.logger.error(Msg.CSV_IMPORT_FAIL);
     }
   }
-};
+
+  private getTransactions(categoryId?: number): DbTransaction[] {
+    try {
+      if (typeof categoryId === 'number') {
+        const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID);
+        return statement.all(categoryId);
+      } else {
+        const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS);
+        return statement.all();
+      }
+    } catch {
+      this.logger.error(Msg.DB_SELECT_FAIL, 'transactions');
+    }
+  }
+
+  private getCategoryByName(name: string): number | undefined {
+    try {
+      const statement = this.db.prepare(Sql.SELECT_CATEGORY_BY_NAME);
+      const result = statement.get(name);
+      return result ? result.id : undefined;
+    } catch {
+      this.logger.error(Msg.DB_SELECT_FAIL, 'categories');
+    }
+  }
+
+  public balance(splitPerCategory = false, categoryName?: string): Record<string, number> {
+    const dbCategories = this.getCategoriesById();
+    let categoryId: number | undefined = undefined;
+    if (typeof categoryName === 'string') {
+      categoryId = this.getCategoryByName(categoryName);
+      if (typeof categoryId !== 'number') {
+        this.logger.error(Msg.CATEGORY_NOT_FOUND, categoryName);
+      }
+    }
+    const dbTransactions = this.getTransactions(categoryId);
+    const result: Record<string, number> = {};
+    dbTransactions.reduce((acc, {category_id, amount}) => {
+      const key = splitPerCategory ? dbCategories[category_id] : 'TOTAL';
+      if (typeof result[key] !== 'number') {
+        result[key] = 0;
+      }
+      result[key] = result[key] + amount;
+      return acc;
+    }, result);
+    return result;
+  }
+}
