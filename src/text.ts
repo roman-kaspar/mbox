@@ -1,4 +1,4 @@
-import {StrTransform} from './types';
+import {StrTransform, Transaction} from './types';
 
 export const cyan: StrTransform = (text) => `\x1b[36m${text}\x1b[0m`;
 export const green: StrTransform = (text) => `\x1b[32m${text}\x1b[0m`;
@@ -45,5 +45,23 @@ export function formatBalance(info: Record<string, number>): string {
   });
   return processed
     .map(({category, amountStr}) => `* ${category.padStart(cLength, ' ')}: ${amountStr.padStart(aLength, ' ')}`)
+    .join('\n');
+}
+
+type ProcessedTransaction = Omit<Transaction, 'amount'> & {
+  amountStr: string;
+};
+
+export function formatTransactions(transactions: Transaction[], isOneCategory: boolean): string {
+  let aLength = 0;
+  const processed: ProcessedTransaction[] = [];
+  while (transactions.length) {
+    const {amount, category, date} = transactions.pop();
+    const amountStr = centsToStr(amount);
+    aLength = Math.max(aLength, amountStr.length);
+    processed.push({amountStr, category, date});
+  }
+  return processed
+    .map(({date, category, amountStr}) => `* ${date}: ${amountStr.padStart(aLength, ' ')}${isOneCategory ? '': ` (${category})`}`)
     .join('\n');
 }

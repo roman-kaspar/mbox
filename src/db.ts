@@ -8,7 +8,7 @@ import {CsvRecord} from './csvFile';
 import {Logger} from './logger';
 import {Msg} from './messages';
 import {Sql} from './sql';
-import {DbCategory, DbTransaction} from './types';
+import {DbCategory, DbTransaction, Transaction} from './types';
 
 const registerExitHandlers = (db: Database, logger: Logger) => {
   process.on('exit', () => {
@@ -183,14 +183,24 @@ export class Db {
     }
   }
 
-  private getTransactions(categoryId?: number): DbTransaction[] {
+  private getTransactions(count: number, categoryId?: number, ordered?: boolean): DbTransaction[] {
     try {
       if (typeof categoryId === 'number') {
-        const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID);
-        return statement.all(categoryId);
+        if (count === 0) {
+          const statement = this.db.prepare(ordered ? Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID_ORDER : Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID);
+          return statement.all(categoryId);
+        } else {
+          const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID_LIMIT);
+          return statement.all(categoryId, count);
+        }
       } else {
-        const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS);
-        return statement.all();
+        if (count === 0) {
+          const statement = this.db.prepare(ordered ? Sql.SELECT_TRANSACTIONS_ORDER : Sql.SELECT_TRANSACTIONS);
+          return statement.all();
+        } else {
+          const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS_LIMIT);
+          return statement.all(count);
+        }
       }
     } catch {
       this.logger.error(Msg.DB_SELECT_FAIL, 'transactions');
@@ -216,7 +226,7 @@ export class Db {
         this.logger.error(Msg.CATEGORY_NOT_FOUND, categoryName);
       }
     }
-    const dbTransactions = this.getTransactions(categoryId);
+    const dbTransactions = this.getTransactions(0, categoryId);
     const result: Record<string, number> = {};
     dbTransactions.reduce((acc, {category_id, amount}) => {
       const key = splitPerCategory ? dbCategories[category_id] : 'TOTAL';
@@ -227,5 +237,18 @@ export class Db {
       return acc;
     }, result);
     return result;
+  }
+
+  public transactions(count: number, categoryName?: string): Transaction[] {
+    const dbCategories = this.getCategoriesById();
+    let categoryId: number | undefined = undefined;
+    if (typeof categoryName === 'string') {
+      categoryId = this.getCategoryByName(categoryName);
+      if (typeof categoryId !== 'number') {
+        this.logger.error(Msg.CATEGORY_NOT_FOUND, categoryName);
+      }
+    }
+    const dbTransactions = this.getTransactions(count, categoryId, true);
+    return dbTransactions.map<Transaction>(({date, category_id, amount}) => ({amount, category: dbCategories[category_id], date}));
   }
 }
