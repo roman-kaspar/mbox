@@ -52,6 +52,11 @@ The following commands are supported:
 
 For details, use `help` command.
 
+### Ideas / TODO
+
+* `--since <date>` and `--until <date>` filters for `balance` and `list` commands
+* interactive (REPL) mode, e.g. default action `connect`
+
 ### Copyright
 
 MIT License
