@@ -1,15 +1,11 @@
+import {writeToPath} from '@fast-csv/format';
 import {parseFile} from '@fast-csv/parse';
 import {access} from 'fs/promises';
 import {constants} from 'fs';
 
 import {Logger} from './logger';
 import {Msg} from './messages';
-
-export type CsvRecord = {
-  amount: number;
-  date: string;
-  category: string;
-};
+import {Transaction} from './types';
 
 export class CsvFile {
   private filename: string;
@@ -20,13 +16,13 @@ export class CsvFile {
     this.logger = logger;
   }
 
-  public async parseFile(): Promise<CsvRecord[]> {
+  public async parseFile(): Promise<Transaction[]> {
     try {
       await access(this.filename, constants.R_OK);
     } catch {
       this.logger.error(Msg.CSV_CANNOT_READ, this.filename);
     }
-    const result: CsvRecord[] = [];
+    const result: Transaction[] = [];
     let lineNumber = 1;
     return new Promise((resolve) => {
       parseFile(this.filename, {objectMode: true, headers: true})
@@ -35,8 +31,8 @@ export class CsvFile {
         })
         .on('data', (data) => {
           try {
-            const csvRecord = this.parseRecord(data);
-            result.push(csvRecord);
+            const transaction = this.parseRecord(data);
+            result.push(transaction);
             lineNumber += 1;
           } catch {
             this.logger.error(Msg.CSV_INVALID_RECORD, this.filename, lineNumber + 1);
@@ -48,7 +44,7 @@ export class CsvFile {
     });
   }
 
-  private parseRecord(what: Record<string, string>): CsvRecord {
+  private parseRecord(what: Record<string, string>): Transaction {
     ['Amount', 'Category', 'Date'].forEach((field) => {
       if (!(field in what)) {
         throw new Error('invalid CVS record');
@@ -63,5 +59,25 @@ export class CsvFile {
       category: what.Category,
       date: what.Date,
     };
+  }
+
+  public async exportTransactions(transactions: Transaction[]): Promise<void> {
+    try {
+      await access(this.filename, constants.R_OK);
+      this.logger.error(Msg.CSV_FILE_ALREADY_EXISTS, this.filename);
+    } catch {
+      // pass
+    }
+    const processed = transactions.map(({amount, category, date}) => ([date, category, `${(amount / 100.0).toFixed(2)}`]));
+    return new Promise((resolve) => {
+      writeToPath(this.filename, processed, {headers: ['Date', 'Category', 'Amount']})
+        .on('error', (e) => {
+          this.logger.error(e.message);
+        })
+        .on('finish', () => {
+          this.logger.info(Msg.CSV_EXPORT_SUCCESS, processed.length, this.filename);
+          resolve();
+        });
+    });
   }
 }

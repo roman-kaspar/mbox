@@ -19,6 +19,8 @@ export const Msg: Record<string, string> = {
   CSV_CANNOT_READ: 'cannot read CSV file "%s"',
   CSV_INVALID_RECORD: 'invalid record in CSV file "%s" on line %d',
   CSV_IMPORT_FAIL: 'import of transactions failed',
+  CSV_FILE_ALREADY_EXISTS: 'CSV file "%s" already exists',
+  CSV_EXPORT_SUCCESS: '%d transaction(s) exported to CSV file "%s"',
 
   CATEGORY_NOT_FOUND: 'category "%s" not present in DB',
 };

@@ -1,6 +1,6 @@
-import {Option} from './action';
+import {CmdLineOption} from './types';
 
-export const commonOptions: Option[] = [
+export const commonOptions: CmdLineOption[] = [
   {
     name: '-d, --database <filename>',
     description: 'location of the database file',

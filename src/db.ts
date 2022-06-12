@@ -4,7 +4,6 @@ import {constants} from 'fs';
 import {resolve} from 'path';
 
 import {yellow} from './text';
-import {CsvRecord} from './csvFile';
 import {Logger} from './logger';
 import {Msg} from './messages';
 import {Sql} from './sql';
@@ -12,8 +11,11 @@ import {DbCategory, DbTransaction, Transaction} from './types';
 
 const registerExitHandlers = (db: Database, logger: Logger) => {
   process.on('exit', () => {
-    logger.info('DB disconnected\n');
-    db.close();
+    try {
+      db.close();
+    } finally {
+      logger.info('DB disconnected\n');
+    }
   });
   process.on('SIGHUP', () => process.exit(128 + 1));
   process.on('SIGINT', () => process.exit(128 + 2));
@@ -63,9 +65,6 @@ export class Db {
   }
 
   private async migrate(): Promise<void> {
-    if (!this.db) {
-      this.logger.error(Msg.DB_NOT_CONNECTED);
-    }
     const entries = await readdir(this.migrationDir, {withFileTypes: true});
     const filenames = entries.filter((f) => (f.isFile() && f.name.toString().endsWith('.sql'))).map((f) => (f.name.toString())).sort();
     let dbFilenames: string[];
@@ -151,7 +150,7 @@ export class Db {
     }, {});
   }
 
-  public import(transactions: CsvRecord[]): void {
+  public import(transactions: Transaction[]): void {
     if (!this.db) {
       this.logger.error(Msg.DB_NOT_CONNECTED);
     }
@@ -218,6 +217,9 @@ export class Db {
   }
 
   public balance(splitPerCategory = false, categoryName?: string): Record<string, number> {
+    if (!this.db) {
+      this.logger.error(Msg.DB_NOT_CONNECTED);
+    }
     const dbCategories = this.getCategoriesById();
     let categoryId: number | undefined = undefined;
     if (typeof categoryName === 'string') {
@@ -240,6 +242,9 @@ export class Db {
   }
 
   public transactions(count: number, categoryName?: string): Transaction[] {
+    if (!this.db) {
+      this.logger.error(Msg.DB_NOT_CONNECTED);
+    }
     const dbCategories = this.getCategoriesById();
     let categoryId: number | undefined = undefined;
     if (typeof categoryName === 'string') {

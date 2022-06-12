@@ -4,6 +4,7 @@ import {InitDbAction} from './initDbAction';
 import {ImportAction} from './importAction';
 import {BalanceAction} from './balanceAction';
 import {ListAction} from './listAction';
+import {ExportAction} from './exportAction';
 
 export async function main(): Promise<void> {
   const logger = new ConsoleLogger();
@@ -12,5 +13,6 @@ export async function main(): Promise<void> {
     new ImportAction(logger),
     new BalanceAction(logger),
     new ListAction(logger),
+    new ExportAction(logger),
   ]);
 }

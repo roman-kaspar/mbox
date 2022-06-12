@@ -3,12 +3,13 @@ import {commonOptions} from './cmdLineCommonOptions';
 import {CsvFile} from './csvFile';
 import {Db} from './db';
 
-export class ImportAction extends Action {
-  public readonly name = 'import';
-  public readonly description = 'import transactions from CSV file';
+
+export class ExportAction extends Action {
+  public readonly name = 'export';
+  public readonly description = 'export transactions to CSV file';
   public readonly arguments = [{
     name: 'csv_filename',
-    description: 'CSV filename with transactions to import',
+    description: 'CSV filename to export the transactions to',
   }];
   public readonly options = [...commonOptions];
   public readonly isDefault = false;
@@ -17,9 +18,8 @@ export class ImportAction extends Action {
     const {database: dbFilename} = options;
     const db = new Db(dbFilename, this.logger);
     await db.connect();
+    const transactions = await db.transactions(0); // all
     const csvFile = new CsvFile(csvFilename, this.logger);
-    const transactions = await csvFile.parseFile();
-    db.import(transactions);
+    await csvFile.exportTransactions(transactions);
   }
-
 }

@@ -18,3 +18,18 @@ export type Transaction = TransactionBase & {
 };
 
 export type StrTransform = (param: string | number) => string;
+
+export type CmdLineParserFn<T> = (value: string, previous: T) => T;
+
+export type CmdLineArgument = {
+  name: string;
+  description: string;
+  parser?: CmdLineParserFn<any>;
+};
+
+export type CmdLineOption = {
+  name: string;
+  description: string;
+  parser?: CmdLineParserFn<any>;
+  defaultValue?: string | boolean | string[] | number;
+};
