@@ -5,6 +5,7 @@ export const green: StrTransform = (text) => `\x1b[32m${text}\x1b[0m`;
 export const magenta: StrTransform = (text) => `\x1b[35m${text}\x1b[0m`;
 export const red: StrTransform = (text) => `\x1b[31m${text}\x1b[0m`;
 export const yellow: StrTransform = (text) => `\x1b[33m${text}\x1b[0m`;
+export const gray: StrTransform = (text) => `\x1b[90m${text}\x1b[0m`;
 
 function centsToStr(cents: number): string {
   const digits = Math.abs(cents).toString().split('');
@@ -31,7 +32,7 @@ function centsToStr(cents: number): string {
     result.unshift('-');
   }
   const str = result.join('');
-  return (cents < 0) ? red(str) : (cents > 0) ? green(str) : str;
+  return (cents < 0) ? red(str) : (cents > 0) ? green(str) : gray(str);
 }
 
 export function formatBalance(info: Record<string, number>): string {
