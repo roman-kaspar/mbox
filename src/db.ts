@@ -183,44 +183,34 @@ export class Db {
   }
 
   private getTransactions(count: number, categoryId?: number, untilDate?: string, ordered?: boolean): DbTransaction[] {
-    try {
-      if (typeof untilDate === 'string') {
-        if (typeof categoryId === 'number') {
-          if (count === 0) {
-            const statement = this.db.prepare(ordered ? Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID_ORDER_UNTIL : Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID_UNTIL);
-            return statement.all(categoryId, untilDate);
-          } else {
-            const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID_LIMIT_UNTIL);
-            return statement.all(categoryId, untilDate, count);
-          }
-        } else {
-          if (count === 0) {
-            const statement = this.db.prepare(ordered ? Sql.SELECT_TRANSACTIONS_ORDER_UNTIL : Sql.SELECT_TRANSACTIONS_UNTIL);
-            return statement.all(untilDate);
-          } else {
-            const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS_LIMIT_UNTIL);
-            return statement.all(untilDate, count);
-          }
-        }
-      } else {
-        if (typeof categoryId === 'number') {
-          if (count === 0) {
-            const statement = this.db.prepare(ordered ? Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID_ORDER : Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID);
-            return statement.all(categoryId);
-          } else {
-            const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID_LIMIT);
-            return statement.all(categoryId, count);
-          }
-        } else {
-          if (count === 0) {
-            const statement = this.db.prepare(ordered ? Sql.SELECT_TRANSACTIONS_ORDER : Sql.SELECT_TRANSACTIONS);
-            return statement.all();
-          } else {
-            const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS_LIMIT);
-            return statement.all(count);
-          }
-        }
+    let whereClause = '';
+    if (typeof categoryId === 'number' || typeof untilDate === 'string') {
+      if (typeof categoryId === 'number') {
+        whereClause = 'category_id = @categoryId';
       }
+      if (typeof untilDate === 'string') {
+        if (whereClause !== '') {
+          whereClause += ' and ';
+        }
+        whereClause += 'date < @untilDate';
+      }
+      whereClause = ` where (${whereClause})`;
+    }
+
+    let orderClause = '';
+    if (ordered) {
+      orderClause = ' order by date desc';
+    }
+
+    let limitClause = '';
+    if (count > 0) {
+      limitClause = ' limit @count';
+    }
+
+    const queryStr = `${Sql.SELECT_TRANSACTIONS_PREFIX}${whereClause}${orderClause}${limitClause};`;
+    try {
+      const statement = this.db.prepare(queryStr);
+      return statement.all({ count, categoryId, untilDate });
     } catch (e) {
       this.logger.error(Msg.DB_SELECT_FAIL, `transactions (message: ${e.message})`);
     }
