@@ -1,6 +1,6 @@
 {
   "name": "mbox",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Localhost command-line replacement for sMoneyBox.com",
   "repository": "git@github.com:roman-kaspar/mbox.git",
   "author": "Roman Kaspar <roman.kaspar@seznam.cz>",
