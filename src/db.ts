@@ -182,11 +182,17 @@ export class Db {
     }
   }
 
-  private getTransactions(count: number, categoryId?: number, untilDate?: string, ordered?: boolean): DbTransaction[] {
+  private getTransactions(count: number, categoryId?: number, sinceDate?: string, untilDate?: string, ordered?: boolean): DbTransaction[] {
     let whereClause = '';
-    if (typeof categoryId === 'number' || typeof untilDate === 'string') {
+    if (typeof categoryId === 'number' || typeof sinceDate === 'string' || typeof untilDate === 'string') {
       if (typeof categoryId === 'number') {
         whereClause = 'category_id = @categoryId';
+      }
+      if (typeof sinceDate === 'string') {
+        if (whereClause !== '') {
+          whereClause += ' and ';
+        }
+        whereClause += 'date >= @sinceDate';
       }
       if (typeof untilDate === 'string') {
         if (whereClause !== '') {
@@ -210,7 +216,7 @@ export class Db {
     const queryStr = `${Sql.SELECT_TRANSACTIONS_PREFIX}${whereClause}${orderClause}${limitClause};`;
     try {
       const statement = this.db.prepare(queryStr);
-      return statement.all({ count, categoryId, untilDate });
+      return statement.all({ count, categoryId, sinceDate, untilDate });
     } catch (e) {
       this.logger.error(Msg.DB_SELECT_FAIL, `transactions (message: ${e.message})`);
     }
@@ -226,7 +232,7 @@ export class Db {
     }
   }
 
-  public balance(splitPerCategory = false, categoryName?: string, untilDate?: string): Record<string, number> {
+  public balance(splitPerCategory = false, categoryName?: string, sinceDate?: string, untilDate?: string): Record<string, number> {
     if (!this.db) {
       this.logger.error(Msg.DB_NOT_CONNECTED);
     }
@@ -238,7 +244,7 @@ export class Db {
         this.logger.error(Msg.CATEGORY_NOT_FOUND, categoryName);
       }
     }
-    const dbTransactions = this.getTransactions(0, categoryId, untilDate);
+    const dbTransactions = this.getTransactions(0, categoryId, sinceDate, untilDate);
     const result: Record<string, number> = {};
     dbTransactions.reduce((acc, {category_id, amount}) => {
       const key = splitPerCategory ? dbCategories[category_id] : 'TOTAL';
@@ -251,7 +257,7 @@ export class Db {
     return result;
   }
 
-  public transactions(count: number, categoryName?: string, untilDate?: string): Transaction[] {
+  public transactions(count: number, categoryName?: string, sinceDate?: string, untilDate?: string): Transaction[] {
     if (!this.db) {
       this.logger.error(Msg.DB_NOT_CONNECTED);
     }
@@ -263,7 +269,7 @@ export class Db {
         this.logger.error(Msg.CATEGORY_NOT_FOUND, categoryName);
       }
     }
-    const dbTransactions = this.getTransactions(count, categoryId, untilDate, true);
+    const dbTransactions = this.getTransactions(count, categoryId, sinceDate, untilDate, true);
     return dbTransactions.map<Transaction>(({date, category_id, amount}) => ({amount, category: dbCategories[category_id], date}));
   }
 }

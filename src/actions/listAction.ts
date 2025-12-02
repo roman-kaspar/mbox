@@ -19,15 +19,16 @@ export class ListAction extends Action {
       parser: createNumberParser(DEFAULT_COUNT),
     },
     Options.allRecords,
+    Options.since,
     Options.until,
   ];
   public readonly isDefault = false;
 
   public async do(options: Record<string, any>): Promise<void> {
-    const { all, category, count, database: dbFilename, until: untilDate } = options;
+    const { all, category, count, database: dbFilename, since: sinceDate, until: untilDate } = options;
     const db = new Db(dbFilename, this.logger);
     await db.connect();
-    const transactions = db.transactions(all ? 0 : count, category, untilDate);
+    const transactions = db.transactions(all ? 0 : count, category, sinceDate, untilDate);
     this.logger.info(`
 
 ${cyan(`*** TRANSACTIONS ${typeof category === 'string' ? `(category = "${category}") `: ''}***`)}

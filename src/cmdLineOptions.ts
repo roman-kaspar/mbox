@@ -22,6 +22,10 @@ export const Options: CmdLineOptionsDict = {
     description: 'location of the database file',
     defaultValue: './mbox.db',
   },
+  since: {
+    name: '-s, --since <date>',
+    description: 'apply only for transactions since provided date <YYYY-MM-DD>',
+  },
   until: {
     name: '-u, --until <date>',
     description: 'apply only for transactions until provided date <YYYY-MM-DD>',

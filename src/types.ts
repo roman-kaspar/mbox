@@ -40,6 +40,7 @@ export type CmdLineOptionNames =
   | 'category'
   | 'count'
   | 'database'
+  | 'since'
   | 'until';
 
 export type CmdLineOptionsDict = {

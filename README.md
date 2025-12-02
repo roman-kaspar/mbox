@@ -52,10 +52,6 @@ The following commands are supported:
 
 For details, use `help` command.
 
-### Ideas / TODO
-
-* `--since <date>` filter for `balance` and `list` commands
-
 ### Copyright
 
 MIT License
