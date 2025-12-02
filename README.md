@@ -61,7 +61,7 @@ For details, use `help` command.
 
 MIT License
 
-Copyright (c) 2022 Roman Kaspar
+Copyright (c) 2022--2026 Roman Kaspar
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
