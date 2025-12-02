@@ -33,3 +33,15 @@ export type CmdLineOption = {
   parser?: CmdLineParserFn<any>;
   defaultValue?: string | boolean | string[] | number;
 };
+
+export type CmdLineOptionNames =
+  | 'allCategories'
+  | 'allRecords'
+  | 'category'
+  | 'count'
+  | 'database'
+  | 'until';
+
+export type CmdLineOptionsDict = {
+  [K in CmdLineOptionNames]: CmdLineOption;
+};

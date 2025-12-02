@@ -1,27 +1,21 @@
-import {Action} from './action';
-import {commonOptions} from './cmdLineCommonOptions';
-import {Db} from './db';
-import {cyan, formatBalance} from './text';
+import { Action } from '../action';
+import { Options } from '../cmdLineOptions';
+import { Db } from '../db';
+import { cyan, formatBalance } from '../text';
 
 export class BalanceAction extends Action {
   public readonly name = 'balance';
   public readonly description = 'print balance of the account (overall, or per category)';
   public readonly arguments = [];
   public readonly options = [
-    ...commonOptions,
-    {
-      name: '-c, --category <name>',
-      description: 'category filter',
-    },
-    {
-      name: '-a, --all-categories',
-      description: 'print all per-category balances',
-    },
+    Options.database,
+    Options.category,
+    Options.allCategories,
   ];
   public readonly isDefault = false;
 
   public async do(options: Record<string, any>): Promise<void> {
-    const {allCategories, category, database: dbFilename} = options;
+    const { allCategories, category, database: dbFilename } = options;
     const db = new Db(dbFilename, this.logger);
     await db.connect();
     let balanceInfo: Record<string, number>;

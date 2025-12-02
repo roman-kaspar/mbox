@@ -1,5 +1,5 @@
-import {Logger} from './logger';
-import {CmdLineArgument, CmdLineOption}from './types';
+import { Logger } from './logger';
+import type { CmdLineArgument, CmdLineOption } from './types';
 
 export abstract class Action {
   public readonly abstract name: string;

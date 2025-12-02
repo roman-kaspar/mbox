@@ -1,7 +1,7 @@
-import {Action} from './action';
-import {commonOptions} from './cmdLineCommonOptions';
-import {CsvFile} from './csvFile';
-import {Db} from './db';
+import { Action } from '../action';
+import { Options } from '../cmdLineOptions';
+import { CsvFile } from '../csvFile';
+import { Db } from '../db';
 
 export class ImportAction extends Action {
   public readonly name = 'import';
@@ -10,7 +10,7 @@ export class ImportAction extends Action {
     name: 'csv_filename',
     description: 'CSV filename with transactions to import',
   }];
-  public readonly options = [...commonOptions];
+  public readonly options = [ Options.database ];
   public readonly isDefault = false;
 
   public async do(csvFilename: string, options: Record<string, any>): Promise<void> {
@@ -21,5 +21,4 @@ export class ImportAction extends Action {
     const transactions = await csvFile.parseFile();
     db.import(transactions);
   }
-
 }

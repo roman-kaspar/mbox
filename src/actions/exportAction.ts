@@ -1,7 +1,7 @@
-import {Action} from './action';
-import {commonOptions} from './cmdLineCommonOptions';
-import {CsvFile} from './csvFile';
-import {Db} from './db';
+import { Action } from '../action';
+import { Options } from '../cmdLineOptions';
+import { CsvFile } from '../csvFile';
+import { Db } from '../db';
 
 
 export class ExportAction extends Action {
@@ -11,7 +11,7 @@ export class ExportAction extends Action {
     name: 'csv_filename',
     description: 'CSV filename to export the transactions to',
   }];
-  public readonly options = [...commonOptions];
+  public readonly options = [ Options.database ];
   public readonly isDefault = false;
 
   public async do(csvFilename: string, options: Record<string, any>): Promise<void> {
