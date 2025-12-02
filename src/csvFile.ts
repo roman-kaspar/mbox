@@ -25,7 +25,7 @@ export class CsvFile {
     const result: Transaction[] = [];
     let lineNumber = 1;
     return new Promise((resolve) => {
-      parseFile(this.filename, {objectMode: true, headers: true})
+      parseFile(this.filename, { objectMode: true, headers: true })
         .on('error', (e) => {
           this.logger.error(e.message);
         })
@@ -68,9 +68,9 @@ export class CsvFile {
     } catch {
       // pass
     }
-    const processed = transactions.map(({amount, category, date}) => ([date, category, `${(amount / 100.0).toFixed(2)}`]));
+    const processed = transactions.map(({ amount, category, date }) => ([date, category, `${(amount / 100.0).toFixed(2)}`]));
     return new Promise((resolve) => {
-      writeToPath(this.filename, processed, {headers: ['Date', 'Category', 'Amount']})
+      writeToPath(this.filename, processed, { headers: ['Date', 'Category', 'Amount'] })
         .on('error', (e) => {
           this.logger.error(e.message);
         })

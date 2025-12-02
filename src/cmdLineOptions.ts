@@ -24,6 +24,6 @@ export const Options: CmdLineOptionsDict = {
   },
   until: {
     name: '-u, --until <date>',
-    description: 'apply only for transactions until provided date <yyyy-mm-dd>',
+    description: 'apply only for transactions until provided date <YYYY-MM-DD>',
   },
 };

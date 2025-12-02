@@ -182,27 +182,47 @@ export class Db {
     }
   }
 
-  private getTransactions(count: number, categoryId?: number, ordered?: boolean): DbTransaction[] {
+  private getTransactions(count: number, categoryId?: number, untilDate?: string, ordered?: boolean): DbTransaction[] {
     try {
-      if (typeof categoryId === 'number') {
-        if (count === 0) {
-          const statement = this.db.prepare(ordered ? Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID_ORDER : Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID);
-          return statement.all(categoryId);
+      if (typeof untilDate === 'string') {
+        if (typeof categoryId === 'number') {
+          if (count === 0) {
+            const statement = this.db.prepare(ordered ? Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID_ORDER_UNTIL : Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID_UNTIL);
+            return statement.all(categoryId, untilDate);
+          } else {
+            const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID_LIMIT_UNTIL);
+            return statement.all(categoryId, untilDate, count);
+          }
         } else {
-          const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID_LIMIT);
-          return statement.all(categoryId, count);
+          if (count === 0) {
+            const statement = this.db.prepare(ordered ? Sql.SELECT_TRANSACTIONS_ORDER_UNTIL : Sql.SELECT_TRANSACTIONS_UNTIL);
+            return statement.all(untilDate);
+          } else {
+            const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS_LIMIT_UNTIL);
+            return statement.all(untilDate, count);
+          }
         }
       } else {
-        if (count === 0) {
-          const statement = this.db.prepare(ordered ? Sql.SELECT_TRANSACTIONS_ORDER : Sql.SELECT_TRANSACTIONS);
-          return statement.all();
+        if (typeof categoryId === 'number') {
+          if (count === 0) {
+            const statement = this.db.prepare(ordered ? Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID_ORDER : Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID);
+            return statement.all(categoryId);
+          } else {
+            const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS_BY_CATEGORY_ID_LIMIT);
+            return statement.all(categoryId, count);
+          }
         } else {
-          const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS_LIMIT);
-          return statement.all(count);
+          if (count === 0) {
+            const statement = this.db.prepare(ordered ? Sql.SELECT_TRANSACTIONS_ORDER : Sql.SELECT_TRANSACTIONS);
+            return statement.all();
+          } else {
+            const statement = this.db.prepare(Sql.SELECT_TRANSACTIONS_LIMIT);
+            return statement.all(count);
+          }
         }
       }
-    } catch {
-      this.logger.error(Msg.DB_SELECT_FAIL, 'transactions');
+    } catch (e) {
+      this.logger.error(Msg.DB_SELECT_FAIL, `transactions (message: ${e.message})`);
     }
   }
 
@@ -241,7 +261,7 @@ export class Db {
     return result;
   }
 
-  public transactions(count: number, categoryName?: string): Transaction[] {
+  public transactions(count: number, categoryName?: string, untilDate?: string): Transaction[] {
     if (!this.db) {
       this.logger.error(Msg.DB_NOT_CONNECTED);
     }
@@ -253,7 +273,7 @@ export class Db {
         this.logger.error(Msg.CATEGORY_NOT_FOUND, categoryName);
       }
     }
-    const dbTransactions = this.getTransactions(count, categoryId, true);
+    const dbTransactions = this.getTransactions(count, categoryId, untilDate, true);
     return dbTransactions.map<Transaction>(({date, category_id, amount}) => ({amount, category: dbCategories[category_id], date}));
   }
 }
