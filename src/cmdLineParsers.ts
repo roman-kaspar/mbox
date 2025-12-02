@@ -1,4 +1,4 @@
-import {CmdLineParserFn} from './types';
+import type { CmdLineParserFn } from './types';
 
 export function createNumberParser(defaultValue: number): CmdLineParserFn<number> {
   return function(value: string, previous: number): number {

@@ -1,4 +1,4 @@
-import {StrTransform, Transaction} from './types';
+import type { StrTransform, Transaction } from './types';
 
 export const cyan: StrTransform = (text) => `\x1b[36m${text}\x1b[0m`;
 export const green: StrTransform = (text) => `\x1b[32m${text}\x1b[0m`;

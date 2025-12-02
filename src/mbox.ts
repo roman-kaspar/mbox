@@ -1,10 +1,10 @@
-import {registerCommands} from './cmdLine';
-import {ConsoleLogger} from './consoleLogger';
-import {InitDbAction} from './initDbAction';
-import {ImportAction} from './importAction';
-import {BalanceAction} from './balanceAction';
-import {ListAction} from './listAction';
-import {ExportAction} from './exportAction';
+import { registerCommands } from './cmdLine';
+import { ConsoleLogger } from './consoleLogger';
+import { InitDbAction } from './actions/initDbAction';
+import { ImportAction } from './actions/importAction';
+import { BalanceAction } from './actions/balanceAction';
+import { ListAction } from './actions/listAction';
+import { ExportAction } from './actions/exportAction';
 
 export async function main(): Promise<void> {
   const logger = new ConsoleLogger();

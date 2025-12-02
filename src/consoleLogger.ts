@@ -1,6 +1,6 @@
 import printf from 'printf';
-import {Logger} from './logger';
-import {green, magenta, red, yellow} from './text';
+import { Logger } from './logger';
+import { green, magenta, red, yellow } from './text';
 
 const redError = red('error:');
 const yellowWarning = yellow('warning:');

@@ -1,13 +1,13 @@
 import Database from 'better-sqlite3';
-import {access, readdir, readFile} from 'fs/promises';
-import {constants} from 'fs';
-import {resolve} from 'path';
+import { access, readdir, readFile } from 'fs/promises';
+import { constants } from 'fs';
+import { resolve } from 'path';
 
-import {yellow} from './text';
-import {Logger} from './logger';
-import {Msg} from './messages';
-import {Sql} from './sql';
-import {DbCategory, DbTransaction, Transaction} from './types';
+import { yellow } from './text';
+import { Logger } from './logger';
+import { Msg } from './messages';
+import { Sql } from './sql';
+import type { DbCategory, DbTransaction, Transaction } from './types';
 
 const registerExitHandlers = (db: Database, logger: Logger) => {
   process.on('exit', () => {

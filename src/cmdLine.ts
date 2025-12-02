@@ -1,5 +1,5 @@
-import {Command, Option} from 'commander';
-import {Action} from './action';
+import { Command, Option } from 'commander';
+import { Action } from './action';
 
 export const registerCommands = async (actions: Action[]): Promise<void> => {
   const program = new Command();

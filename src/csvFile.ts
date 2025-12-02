@@ -1,11 +1,11 @@
-import {writeToPath} from '@fast-csv/format';
-import {parseFile} from '@fast-csv/parse';
-import {access} from 'fs/promises';
-import {constants} from 'fs';
+import { writeToPath } from '@fast-csv/format';
+import { parseFile } from '@fast-csv/parse';
+import { access } from 'fs/promises';
+import { constants } from 'fs';
 
-import {Logger} from './logger';
-import {Msg} from './messages';
-import {Transaction} from './types';
+import { Logger } from './logger';
+import { Msg } from './messages';
+import type { Transaction } from './types';
 
 export class CsvFile {
   private filename: string;
