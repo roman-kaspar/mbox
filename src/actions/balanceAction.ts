@@ -11,20 +11,21 @@ export class BalanceAction extends Action {
     Options.database,
     Options.category,
     Options.allCategories,
+    Options.until,
   ];
   public readonly isDefault = false;
 
   public async do(options: Record<string, any>): Promise<void> {
-    const { allCategories, category, database: dbFilename } = options;
+    const { allCategories, category, database: dbFilename, until: untilDate } = options;
     const db = new Db(dbFilename, this.logger);
     await db.connect();
     let balanceInfo: Record<string, number>;
     if (allCategories) {
-      balanceInfo = db.balance(true);
+      balanceInfo = db.balance(true, undefined, untilDate);
     } else if (category) {
-      balanceInfo = db.balance(true, category);
+      balanceInfo = db.balance(true, category, untilDate);
     } else {
-      balanceInfo = db.balance();
+      balanceInfo = db.balance(false, undefined, untilDate);
     }
     this.logger.info(`\n\n${cyan('*** BALANCE ***')}\n\n${formatBalance(balanceInfo)}\n`);
   }

@@ -236,7 +236,7 @@ export class Db {
     }
   }
 
-  public balance(splitPerCategory = false, categoryName?: string): Record<string, number> {
+  public balance(splitPerCategory = false, categoryName?: string, untilDate?: string): Record<string, number> {
     if (!this.db) {
       this.logger.error(Msg.DB_NOT_CONNECTED);
     }
@@ -248,7 +248,7 @@ export class Db {
         this.logger.error(Msg.CATEGORY_NOT_FOUND, categoryName);
       }
     }
-    const dbTransactions = this.getTransactions(0, categoryId);
+    const dbTransactions = this.getTransactions(0, categoryId, untilDate);
     const result: Record<string, number> = {};
     dbTransactions.reduce((acc, {category_id, amount}) => {
       const key = splitPerCategory ? dbCategories[category_id] : 'TOTAL';
